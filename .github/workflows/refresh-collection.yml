@@ -1,0 +1,73 @@
+name: Refresh collection from the live OpenAPI spec
+
+# Regenerates collection.json from https://ofmapi.com/openapi.json and
+# commits only when the output changed, so the repository tracks the API
+# without hand edits. Runs weekly and on demand.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Download the spec
+        run: curl -sSfL https://ofmapi.com/openapi.json -o openapi.json
+
+      - name: Generate the collection
+        run: |
+          npx --yes openapi-to-postmanv2 \
+            -s openapi.json -o collection.generated.json -p \
+            -O folderStrategy=Tags,requestNameSource=Fallback,includeAuthInfoInExample=false
+
+      - name: Apply collection-level auth and variables
+        run: |
+          node - <<'JS'
+          const fs = require("fs");
+          const c = JSON.parse(fs.readFileSync("collection.generated.json", "utf8"));
+          c.info.name = "OFMAPI — OnlyFans API";
+          c.info.description =
+            "Postman collection for the OFMAPI OnlyFans API (https://ofmapi.com). " +
+            "Generated from the public OpenAPI 3.1 spec at https://ofmapi.com/openapi.json. " +
+            "Set the apiKey variable to your ofmapi_... key. Free during public Beta; documented usage limits apply.";
+          c.variable = [
+            { key: "baseUrl", value: "https://api.ofmapi.com", type: "string" },
+            { key: "apiKey", value: "", type: "string" },
+          ];
+          c.auth = { type: "bearer", bearer: [{ key: "token", value: "{{apiKey}}", type: "string" }] };
+          const strip = (items) => {
+            for (const it of items) {
+              if (it.item) { strip(it.item); continue; }
+              const r = it.request || {};
+              delete r.auth;
+              r.header = (r.header || []).filter((h) => (h.key || "").toLowerCase() !== "authorization");
+            }
+          };
+          strip(c.item);
+          fs.writeFileSync("collection.json", JSON.stringify(c, null, 2) + "\n");
+          fs.unlinkSync("collection.generated.json");
+          fs.unlinkSync("openapi.json");
+          JS
+
+      - name: Commit if changed
+        run: |
+          if git diff --quiet -- collection.json; then
+            echo "collection unchanged"
+            exit 0
+          fi
+          git config user.name "ofmapi-team"
+          git config user.email "283337726+ofmapi-team@users.noreply.github.com"
+          git add collection.json
+          git commit -m "chore: refresh collection from the live OpenAPI spec"
+          git push
