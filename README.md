@@ -1,9 +1,10 @@
-# OFMAPI Postman collection
+# OnlyFans API Postman collection (OFMAPI)
 
-A Postman collection for the [OFMAPI](https://ofmapi.com) OnlyFans API,
-generated from the public OpenAPI 3.1 spec at
-[ofmapi.com/openapi.json](https://ofmapi.com/openapi.json). Every operation in
-the spec is included, grouped into folders by tag.
+A Postman collection for the OFMAPI OnlyFans API, generated from the public
+OpenAPI 3.1 spec at [ofmapi.com/openapi.json](https://ofmapi.com/openapi.json).
+Every operation in the spec is included and grouped into folders by tag:
+accounts, fans, messages, posts, vault, earnings, statistics, webhooks, and
+more.
 
 ## Files
 
@@ -16,7 +17,8 @@ the spec is included, grouped into folders by tag.
 
 1. In Postman choose **File → Import** and drop both files.
 2. Create an API key at [app.ofmapi.com/api-keys](https://app.ofmapi.com/api-keys)
-   (free during the public Beta, no card required).
+   (free during the public Beta, no card required) and connect an OnlyFans
+   account in the dashboard.
 3. Select the **OFMAPI Production** environment and paste the `ofmapi_...`
    value into `apiKey`.
 4. Open **Accounts → List Accounts** and send.
@@ -39,6 +41,14 @@ The repository is regenerated when the spec changes.
 - Quickstart: https://ofmapi.com/docs/quickstart
 - Rate limits and Beta usage limits: https://ofmapi.com/docs/rate-limits
 - Status: https://ofmapi.com/status
+- Contact and support: https://ofmapi.com/contact
+
+## What OFMAPI is
+
+An independent, unofficial OnlyFans API for agencies and developers: typed
+REST endpoints, signed webhooks, and a hosted MCP server (174 tools) for
+Claude, ChatGPT, Cursor, and VS Code. There is no official OnlyFans
+developer API.
 
 ## License
 
